@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matricería Laminado - Pedido Express</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --color-bg: #1e2227;
+            --color-card: #252a33;
+            --color-card-light: #2c313c;
+            --color-text: #e6e9ef;
+            --color-text-muted: #8a93aa;
+            --color-primary: #7c9cbf;
+            --color-primary-light: #8caccf;
+            --color-accent: #9cc17c;
+            --color-secondary: #c17c7c;
+            --color-border: #3a4252;
+            --color-gradient: linear-gradient(135deg, #7c9cbf 0%, #9cc17c 100%);
+            --shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+            --transition: all 0.3s ease;
+        }
+
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+        }
+        
+        html { 
+            scroll-behavior: smooth; 
+        }
+        
+        body {
+            background-color: var(--color-bg);
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(44, 49, 60, 0.1) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(44, 49, 60, 0.1) 0%, transparent 25%);
+            color: var(--color-text);
+            font-family: 'Poppins', sans-serif;
+            line-height: 1.6;
+            padding: 20px;
+            padding-bottom: 100px;
+            min-height: 100vh;
+        }
+        
+        .container { 
+            max-width: 1400px; 
+            margin: 0 auto; 
+        }
+        
+        main { 
+            display: grid; 
+            grid-template-columns: 1fr; 
+            gap: 25px; 
+        }
+        
+        .header { 
+            text-align: center; 
+            margin-bottom: 40px; 
+            position: relative;
+        }
+        
+        .header h1 {
+            font-size: clamp(2rem, 6vw, 3.5rem);
+            font-weight: 800;
+            background: var(--color-gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        .header h1::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 4px;
+            background: var(--color-gradient);
+            border-radius: 2px;
+        }
+        
+        .header p {
+            color: var(--color-text-muted);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .insumos-section, .cart-section {
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+        }
+        
+        .insumos-section:hover, .cart-section:hover {
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .insumos-section h2, .cart-section h2 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--color-text);
+            border-bottom: 1px solid var(--color-border);
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .insumos-section h2 i, .cart-section h2 i {
+            color: var(--color-primary);
+        }
+
+        /* --- Estilos para los filtros de categoría --- */
+        #category-filters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        
+        .category-btn {
+            background-color: var(--color-card-light);
+            color: var(--color-text-muted);
+            border: 1px solid var(--color-border);
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .category-btn:hover {
+            background-color: var(--color-border);
+            color: var(--color-text);
+            transform: translateY(-2px);
+        }
+        
+        .category-btn.active {
+            background-color: var(--color-primary);
+            color: var(--color-bg);
+            font-weight: 600;
+            border-color: var(--color-primary);
+            box-shadow: 0 4px 15px rgba(124, 156, 191, 0.3);
+        }
+        
+        .search-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+        
+        #search-input {
+            width: 100%;
+            padding: 15px 15px 15px 45px;
+            background-color: var(--color-card-light);
+            border: 1px solid var(--color-border);
+            border-radius: 10px;
+            color: var(--color-text);
+            font-family: 'Poppins', sans-serif;
+            font-size: 1rem;
+            transition: var(--transition);
+        }
+        
+        #search-input:focus {
+            outline: none;
+            border-color: var(--color-primary);
+            box-shadow: 0 0 15px rgba(124, 156, 191, 0.2);
+        }
+        
+        .search-container i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--color-text-muted);
+        }
+        
+        .insumos-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 25px;
+        }
+        
+        .insumo-item {
+            background-color: var(--color-card-light);
+            border: 1px solid var(--color-border);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .insumo-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--color-gradient);
+            opacity: 0;
+            transition: var(--transition);
+        }
+        
+        .insumo-item:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
+        }
+        
+        .insumo-item:hover::before {
+            opacity: 1;
+        }
+        
+        .insumo-image-container {
+            height: 140px;
+            margin-bottom: 15px;
+            background: var(--color-card);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .insumo-image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: var(--transition);
+        }
+        
+        .insumo-item:hover .insumo-image-container img {
+            transform: scale(1.05);
+        }
+        
+        .insumo-image-container .placeholder-icon {
+            font-size: 2.5rem;
+            color: var(--color-text-muted);
+        }
+        
+        .insumo-category {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(44, 49, 60, 0.8);
+            color: var(--color-primary-light);
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            border-radius: 50px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .insumo-item h3 {
+            font-size: 1.05rem;
+            font-weight: 500;
+            margin-bottom: 15px;
+            flex-grow: 1;
+        }
+        
+        .input-group { 
+            display: flex; 
+            position: relative;
+        }
+        
+        .quantity-input {
+            width: 100%;
+            text-align: center;
+            background-color: var(--color-card);
+            border: 1px solid var(--color-border);
+            color: var(--color-text);
+            padding: 12px;
+            border-radius: 8px 0 0 8px;
+            -moz-appearance: textfield;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .quantity-input::-webkit-outer-spin-button, 
+        .quantity-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+        }
+        
+        .insumo-add-btn {
+            background: var(--color-gradient);
+            color: var(--color-bg);
+            border: none;
+            padding: 0 18px;
+            border-radius: 0 8px 8px 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .insumo-add-btn:hover { 
+            opacity: 0.9;
+            box-shadow: 0 0 15px rgba(156, 193, 124, 0.4);
+        }
+        
+        .cart-section {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        
+        .cart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .cart-badge {
+            background: var(--color-primary);
+            color: var(--color-bg);
+            border-radius: 50px;
+            padding: 4px 12px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .cart-list {
+            list-style: none;
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            max-height: 45vh;
+        }
+        
+        .cart-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 10px;
+            border-bottom: 1px solid var(--color-border);
+            animation: fadeIn 0.3s ease;
+            background: var(--color-card-light);
+            border-radius: 8px;
+            margin-bottom: 10px;
+        }
+        
+        .cart-list .item-name {
+            flex-basis: 50%;
+            font-size: 0.95rem;
+            color: var(--color-text);
+        }
+        
+        .cart-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .cart-controls button {
+            background: var(--color-card);
+            border: 1px solid var(--color-border);
+            color: var(--color-text-muted);
+            font-size: 1rem;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .cart-controls button:hover {
+            background-color: var(--color-primary);
+            color: var(--color-text);
+            transform: scale(1.1);
+        }
+        
+        .cart-controls .remove-btn { 
+            color: var(--color-secondary); 
+            border-color: rgba(193, 124, 124, 0.3);
+        }
+        
+        .cart-controls .remove-btn:hover { 
+            background-color: var(--color-secondary); 
+            color: var(--color-text); 
+        }
+        
+        #empty-cart-message {
+            text-align: center;
+            color: var(--color-text-muted);
+            margin: auto;
+            padding: 40px 0;
+        }
+        
+        #empty-cart-message i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+        
+        .cart-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px 0;
+            margin: 10px 0;
+            border-top: 1px solid var(--color-border);
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+        
+        .buy-btn {
+            width: 100%;
+            padding: 18px;
+            font-family: 'Poppins', sans-serif;
+            background: var(--color-gradient);
+            color: var(--color-bg);
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .buy-btn:hover:not(:disabled) {
+            opacity: 0.9;
+            box-shadow: 0 5px 20px rgba(124, 156, 191, 0.4);
+            transform: translateY(-2px);
+        }
+        
+        .buy-btn:disabled {
+            background: var(--color-border);
+            color: var(--color-text-muted);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        @media (min-width: 992px) {
+            main { 
+                grid-template-columns: 1fr 420px; 
+            }
+            
+            .cart-section {
+                position: sticky;
+                top: 20px;
+                height: calc(100vh - 40px);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 15px;
+            }
+            
+            .insumos-section, .cart-section {
+                padding: 20px;
+            }
+            
+            .insumos-grid {
+                grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+                gap: 15px;
+            }
+        }
+        
+        @keyframes fadeIn {
+            from { 
+                opacity: 0; 
+                transform: translateY(10px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        .notification {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--color-accent);
+            color: var(--color-bg);
+            padding: 15px 25px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: var(--transition);
+            z-index: 1000;
+        }
+        
+        .notification.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>MATRICERÍA LAMINADO</h1>
+            <p>Sistema de pedidos express de insumos y materiales</p>
+        </header>
+        
+        <main>
+            <section class="insumos-section">
+                <h2><i class="fas fa-box-open"></i> Catálogo de Insumos</h2>
+                <div id="category-filters"></div>
+                
+                <div class="search-container">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="search-input" placeholder="Buscar por nombre...">
+                </div>
+                
+                <div id="insumos-grid" class="insumos-grid"></div>
+            </section>
+            
+            <aside class="cart-section">
+                <div class="cart-header">
+                    <h2><i class="fas fa-shopping-cart"></i> Tu Pedido</h2>
+                    <span id="cart-badge" class="cart-badge">0 items</span>
+                </div>
+                
+                <ul id="cart-list" class="cart-list">
+                    <div id="empty-cart-message">
+                        <i class="fas fa-cart-plus"></i>
+                        <p>El carrito está vacío</p>
+                    </div>
+                </ul>
+                
+                <div class="cart-total">
+                    <span>Total items:</span>
+                    <span id="total-items">0</span>
+                </div>
+                
+                <button id="buy-button" class="buy-btn" disabled>
+                    <i class="fas fa-paper-plane"></i> GENERAR PEDIDO
+                </button>
+            </aside>
+        </main>
+    </div>
+
+    <div id="notification" class="notification">
+        <i class="fas fa-check-circle"></i>
+        <span id="notification-text"></span>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const emailDestinatario = 'compras@tuempresa.com';
+        
+        // Datos de productos con la nueva propiedad "categoria"
+        const insumosData = [
+            { nombre: "Rodamientos 6001", imagen: "images/rodamiento.jpg", categoria: "Rodamientos" },
+            { nombre: "Arandelas M6", imagen: "images/arandela.jpg", categoria: "Arandelas" },
+            { nombre: "Arandelas M8", imagen: "images/arandela.jpg", categoria: "Arandelas" },
+            { nombre: "Arandelas M12", imagen: "images/arandela.jpg", categoria: "Arandelas" },
+            { nombre: "Arandela Plana 3/4", imagen: "images/arandela.jpg", categoria: "Arandelas" },
+            { nombre: "Arandela de suplemento M12x20mm", imagen: "images/arandela_suplemento.jpg", categoria: "Arandelas" },
+            { nombre: "Arandela Segger ext. 11mm", imagen: "images/segger.jpg", categoria: "Arandelas" },
+            { nombre: "Tornillos Allen M8 x 10mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Allen M8 x 15mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Allen M8 x 20mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Allen M8 x 25mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Allen M8 x 30mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Allen M6 x 10mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Allen M6 x 15mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Allen M6 x 20mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Allen M6 x 25mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Allen M6 x 30mm", imagen: "images/tornillo_allen.jpg", categoria: "Tornillos" },
+            { nombre: "Tornillos Autoperforantes T2", imagen: "images/autoperforante.jpg", categoria: "Tornillos" },
+            { nombre: "Tuerca Mariposa M6", imagen: "images/mariposa.jpg", categoria: "Tuercas" },
+            { nombre: "Tuerca Mariposa M8", imagen: "images/mariposa.jpg", categoria: "Tuercas" },
+            { nombre: "Tuerca Hexagonal M6", imagen: "images/tuerca_hex.jpg", categoria: "Tuercas" },
+			{ nombre: "ian ejemplo", imagen: "images/tuerca_hex.jpg", categoria: "Tuercas" },
+            { nombre: "Tuerca Hexagonal M8", imagen: "images/tuerca_hex.jpg", categoria: "Tuercas" }
+        ];
+        
+        const searchInput = document.getElementById('search-input');
+        const insumosGrid = document.getElementById('insumos-grid');
+        const cartList = document.getElementById('cart-list');
+        const emptyCartMessage = document.getElementById('empty-cart-message');
+        const buyButton = document.getElementById('buy-button');
+        const categoryFiltersContainer = document.getElementById('category-filters');
+        const cartBadge = document.getElementById('cart-badge');
+        const totalItemsElement = document.getElementById('total-items');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
+        
+        const cart = new Map();
+        let activeCategory = 'Todos';
+        let totalItems = 0;
+
+        const showNotification = (message) => {
+            notificationText.textContent = message;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        };
+
+        const renderInsumos = () => {
+            insumosGrid.innerHTML = '';
+            const filterText = searchInput.value.toLowerCase();
+            
+            const filteredData = insumosData.filter(insumo => {
+                const inCategory = activeCategory === 'Todos' || insumo.categoria === activeCategory;
+                const inSearch = insumo.nombre.toLowerCase().includes(filterText);
+                return inCategory && inSearch;
+            });
+
+            if (filteredData.length === 0) {
+                insumosGrid.innerHTML = `
+                    <div class="no-results" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--color-text-muted);">
+                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
+                        <h3>No se encontraron insumos</h3>
+                        <p>Intenta con otros términos de búsqueda o selecciona otra categoría</p>
+                    </div>
+                `;
+                return;
+            }
+
+            filteredData.forEach(insumo => {
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'insumo-item';
+                itemDiv.innerHTML = `
+                    <div class="insumo-image-container">
+                        ${insumo.imagen ? 
+                            `<img src="${insumo.imagen}" alt="${insumo.nombre}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                            ''
+                        }
+                        <div class="placeholder-icon" style="${insumo.imagen ? 'display: none;' : ''}">
+                            <i class="fas fa-box"></i>
+                        </div>
+                        <span class="insumo-category">${insumo.categoria}</span>
+                    </div>
+                    <h3>${insumo.nombre}</h3>
+                    <div class="input-group">
+                        <input type="number" value="1" min="1" class="quantity-input" aria-label="Cantidad para ${insumo.nombre}">
+                        <button class="insumo-add-btn" data-insumo="${insumo.nombre}" title="Agregar ${insumo.nombre} al carrito">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                `;
+                insumosGrid.appendChild(itemDiv);
+            });
+        };
+
+        const renderCategoryFilters = () => {
+            const categories = ['Todos', ...new Set(insumosData.map(item => item.categoria))];
+            categoryFiltersContainer.innerHTML = '';
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'category-btn';
+                button.innerHTML = `
+                    <i class="fas ${getCategoryIcon(category)}"></i>
+                    ${category}
+                `;
+                button.dataset.category = category;
+                if (category === activeCategory) {
+                    button.classList.add('active');
+                }
+                button.addEventListener('click', () => {
+                    activeCategory = category;
+                    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    renderInsumos();
+                });
+                categoryFiltersContainer.appendChild(button);
+            });
+        };
+
+        const getCategoryIcon = (category) => {
+            const icons = {
+                'Todos': 'fa-grid',
+                'Rodamientos': 'fa-cog',
+                'Arandelas': 'fa-circle',
+                'Tornillos': 'fa-screwdriver',
+                'Tuercas': 'fa-nut-bolt'
+            };
+            return icons[category] || 'fa-box';
+        };
+
+        const updateCartUI = () => {
+            cartList.innerHTML = '';
+            totalItems = 0;
+            
+            if (cart.size === 0) {
+                cartList.appendChild(emptyCartMessage);
+                emptyCartMessage.style.display = 'block';
+                buyButton.disabled = true;
+                cartBadge.textContent = '0 items';
+                totalItemsElement.textContent = '0';
+            } else {
+                emptyCartMessage.style.display = 'none';
+                buyButton.disabled = false;
+                
+                cart.forEach((quantity, insumo) => {
+                    totalItems += quantity;
+                    const li = document.createElement('li');
+                    li.innerHTML = `
+                        <span class="item-name">${insumo}</span>
+                        <div class="cart-controls">
+                            <button class="decrease-btn" data-insumo="${insumo}" title="Quitar uno">
+                                <i class="fas fa-minus"></i>
+                            </button>
+                            <span>${quantity}</span>
+                            <button class="increase-btn" data-insumo="${insumo}" title="Añadir uno">
+                                <i class="fas fa-plus"></i>
+                            </button>
+                            <button class="remove-btn" data-insumo="${insumo}" title="Eliminar del carrito">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    `;
+                    cartList.appendChild(li);
+                });
+                
+                cartBadge.textContent = `${cart.size} ${cart.size === 1 ? 'item' : 'items'}`;
+                totalItemsElement.textContent = totalItems;
+            }
+        };
+
+        const addToCart = (insumo, quantity) => {
+            const currentQuantity = cart.get(insumo) || 0;
+            cart.set(insumo, currentQuantity + quantity);
+            updateCartUI();
+            showNotification(`¡${quantity} ${insumo} agregado(s) al carrito!`);
+        };
+
+        const decreaseFromCart = (insumo) => {
+            const currentQuantity = cart.get(insumo);
+            if (currentQuantity > 1) {
+                cart.set(insumo, currentQuantity - 1);
+                showNotification(`Se removió 1 ${insumo} del carrito`);
+            } else {
+                cart.delete(insumo);
+                showNotification(`Se eliminó ${insumo} del carrito`);
+            }
+            updateCartUI();
+        };
+
+        const removeFromCart = (insumo) => {
+            cart.delete(insumo);
+            updateCartUI();
+            showNotification(`Se eliminó ${insumo} del carrito`);
+        };
+
+        const enviarPedido = () => {
+            const solicitante = prompt("Por favor, ingresa tu nombre para identificar el pedido:");
+            if (!solicitante) { return; }
+
+            const asunto = `Pedido de Insumos - ${solicitante}`;
+            let cuerpoCorreo = `Hola,\n\nSe requiere la compra de los siguientes insumos, solicitado por: ${solicitante}\n\n`;
+            cart.forEach((quantity, insumo) => {
+                cuerpoCorreo += `  • ${insumo} (Cantidad: ${quantity})\n`;
+            });
+            cuerpoCorreo += `\nTotal de items: ${totalItems}\n`;
+            cuerpoCorreo += "\nSaludos.";
+            
+            const mailtoLink = `mailto:${emailDestinatario}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpoCorreo)}`;
+            window.location.href = mailtoLink;
+            
+            // Limpiar carrito después de enviar
+            cart.clear();
+            updateCartUI();
+        };
+
+        searchInput.addEventListener('input', renderInsumos);
+        
+        insumosGrid.addEventListener('click', e => {
+            const addButton = e.target.closest('.insumo-add-btn');
+            if (addButton) {
+                const insumo = addButton.dataset.insumo;
+                const quantityInput = addButton.previousElementSibling;
+                const quantity = parseInt(quantityInput.value, 10);
+                if (quantity > 0) {
+                    addToCart(insumo, quantity);
+                    quantityInput.value = "1";
+                }
+            }
+        });
+
+        cartList.addEventListener('click', e => {
+            const button = e.target.closest('button');
+            if (button) {
+                const insumo = button.dataset.insumo;
+                if (button.classList.contains('increase-btn')) addToCart(insumo, 1);
+                if (button.classList.contains('decrease-btn')) decreaseFromCart(insumo);
+                if (button.classList.contains('remove-btn')) removeFromCart(insumo);
+            }
+        });
+
+        buyButton.addEventListener('click', enviarPedido);
+
+        // Inicialización de la app
+        renderCategoryFilters();
+        renderInsumos();
+        updateCartUI();
+    });
+    </script>
+</body>
+</html>
