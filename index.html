@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Matricería Laminado - Pedido Express</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
 
@@ -439,9 +440,13 @@
 
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const emailDestinatario = 'compras@tuempresa.com';
         
-        // Datos de productos SIN la propiedad "imagen"
+        // --- INICIALIZACIÓN DE EMAILJS ---
+        (function(){
+            emailjs.init({ publicKey: "ijirxUf8mUEC_qUb3" });
+        })();
+
+        // Datos de productos
         const insumosData = [
             { nombre: "Rodamientos 6001", categoria: "Rodamientos" },
             { nombre: "Arandelas M6", categoria: "Arandelas" },
@@ -481,7 +486,6 @@
         
         const cart = new Map();
         let activeCategory = 'Todos';
-        let totalItems = 0;
 
         const showNotification = (message) => {
             notificationText.textContent = message;
@@ -503,20 +507,13 @@
             });
 
             if (filteredData.length === 0) {
-                insumosGrid.innerHTML = `
-                    <div class="no-results" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--color-text-muted);">
-                        <i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i>
-                        <h3>No se encontraron insumos</h3>
-                        <p>Intenta con otros términos de búsqueda o selecciona otra categoría</p>
-                    </div>
-                `;
+                insumosGrid.innerHTML = `<div class="no-results" style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--color-text-muted);"><i class="fas fa-search" style="font-size: 3rem; margin-bottom: 15px; opacity: 0.5;"></i><h3>No se encontraron insumos</h3><p>Intenta con otros términos de búsqueda o selecciona otra categoría</p></div>`;
                 return;
             }
 
             filteredData.forEach(insumo => {
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'insumo-item';
-                // HTML de la tarjeta de producto SIN la sección de imagen
                 itemDiv.innerHTML = `
                     <h3>${insumo.nombre}</h3>
                     <div class="input-group">
@@ -536,10 +533,7 @@
             categories.forEach(category => {
                 const button = document.createElement('button');
                 button.className = 'category-btn';
-                button.innerHTML = `
-                    <i class="fas ${getCategoryIcon(category)}"></i>
-                    ${category}
-                `;
+                button.innerHTML = `<i class="fas ${getCategoryIcon(category)}"></i> ${category}`;
                 button.dataset.category = category;
                 if (category === activeCategory) {
                     button.classList.add('active');
@@ -567,14 +561,12 @@
 
         const updateCartUI = () => {
             cartList.innerHTML = '';
-            totalItems = 0;
+            let totalItems = 0;
             
             if (cart.size === 0) {
                 cartList.appendChild(emptyCartMessage);
                 emptyCartMessage.style.display = 'block';
                 buyButton.disabled = true;
-                cartBadge.textContent = '0 items';
-                totalItemsElement.textContent = '0';
             } else {
                 emptyCartMessage.style.display = 'none';
                 buyButton.disabled = false;
@@ -582,27 +574,12 @@
                 cart.forEach((quantity, insumo) => {
                     totalItems += quantity;
                     const li = document.createElement('li');
-                    li.innerHTML = `
-                        <span class="item-name">${insumo}</span>
-                        <div class="cart-controls">
-                            <button class="decrease-btn" data-insumo="${insumo}" title="Quitar uno">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <span>${quantity}</span>
-                            <button class="increase-btn" data-insumo="${insumo}" title="Añadir uno">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                            <button class="remove-btn" data-insumo="${insumo}" title="Eliminar del carrito">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                    `;
+                    li.innerHTML = `<span class="item-name">${insumo}</span><div class="cart-controls"><button class="decrease-btn" data-insumo="${insumo}" title="Quitar uno"><i class="fas fa-minus"></i></button><span>${quantity}</span><button class="increase-btn" data-insumo="${insumo}" title="Añadir uno"><i class="fas fa-plus"></i></button><button class="remove-btn" data-insumo="${insumo}" title="Eliminar del carrito"><i class="fas fa-times"></i></button></div>`;
                     cartList.appendChild(li);
                 });
-                
-                cartBadge.textContent = `${cart.size} ${cart.size === 1 ? 'item' : 'items'}`;
-                totalItemsElement.textContent = totalItems;
             }
+            cartBadge.textContent = `${cart.size} ${cart.size === 1 ? 'item' : 'items'}`;
+            totalItemsElement.textContent = totalItems;
         };
 
         const addToCart = (insumo, quantity) => {
@@ -616,10 +593,8 @@
             const currentQuantity = cart.get(insumo);
             if (currentQuantity > 1) {
                 cart.set(insumo, currentQuantity - 1);
-                showNotification(`Se removió 1 ${insumo} del carrito`);
             } else {
                 cart.delete(insumo);
-                showNotification(`Se eliminó ${insumo} del carrito`);
             }
             updateCartUI();
         };
@@ -627,26 +602,56 @@
         const removeFromCart = (insumo) => {
             cart.delete(insumo);
             updateCartUI();
-            showNotification(`Se eliminó ${insumo} del carrito`);
         };
 
         const enviarPedido = () => {
             const solicitante = prompt("Por favor, ingresa tu nombre para identificar el pedido:");
-            if (!solicitante) { return; }
+            if (!solicitante) {
+                showNotification("Envío cancelado. Se requiere un nombre.");
+                return;
+            }
 
-            const asunto = `Pedido de Insumos - ${solicitante}`;
-            let cuerpoCorreo = `Hola,\n\nSe requiere la compra de los siguientes insumos, solicitado por: ${solicitante}\n\n`;
+            const buyButton = document.getElementById('buy-button');
+            buyButton.disabled = true;
+            buyButton.innerHTML = `<i class="fas fa-spinner fa-spin"></i> ENVIANDO...`;
+
+            let tablaItemsHTML = '';
             cart.forEach((quantity, insumo) => {
-                cuerpoCorreo += `  • ${insumo} (Cantidad: ${quantity})\n`;
+                // AQUÍ ESTÁ LA CORRECCIÓN: Se añade style="color: #FFFFFF;" a la celda
+                tablaItemsHTML += `
+                    <tr>
+                        <td style="color: #FFFFFF; padding: 12px 15px;">${insumo}</td>
+                        <td class="quantity">${quantity}</td>
+                    </tr>
+                `;
             });
-            cuerpoCorreo += `\nTotal de unidades: ${totalItems}\n`;
-            cuerpoCorreo += "\nSaludos.";
             
-            const mailtoLink = `mailto:${emailDestinatario}?subject=${encodeURIComponent(asunto)}&body=${encodeURIComponent(cuerpoCorreo)}`;
-            window.location.href = mailtoLink;
-            
-            cart.clear();
-            updateCartUI();
+            const totalUnidades = Array.from(cart.values()).reduce((sum, qty) => sum + qty, 0);
+
+            const templateParams = {
+                solicitante: solicitante,
+                fecha: new Date().toLocaleString('es-AR'),
+                tabla_items: tablaItemsHTML,
+                total_unidades: totalUnidades
+            };
+
+            const serviceID = 'service_0km4lgl';
+            const templateID = 'template_pw0s1sg';
+
+            emailjs.send(serviceID, templateID, templateParams)
+                .then(res => {
+                    showNotification("¡Pedido enviado con éxito!");
+                    cart.clear();
+                    updateCartUI();
+                })
+                .catch(err => {
+                    alert('Error al enviar el correo: ' + JSON.stringify(err));
+                    showNotification("Error al enviar el pedido. Intenta de nuevo.");
+                })
+                .finally(() => {
+                    buyButton.disabled = false;
+                    buyButton.innerHTML = `<i class="fas fa-paper-plane"></i> GENERAR PEDIDO`;
+                });
         };
 
         searchInput.addEventListener('input', renderInsumos);
@@ -657,10 +662,7 @@
                 const insumo = addButton.dataset.insumo;
                 const quantityInput = addButton.previousElementSibling;
                 const quantity = parseInt(quantityInput.value, 10);
-                if (quantity > 0) {
-                    addToCart(insumo, quantity);
-                    quantityInput.value = "1";
-                }
+                if (quantity > 0) { addToCart(insumo, quantity); quantityInput.value = "1"; }
             }
         });
 
